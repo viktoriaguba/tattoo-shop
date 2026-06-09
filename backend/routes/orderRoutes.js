@@ -17,12 +17,11 @@ router.post('/', async (req, res) => {
   try {
     const { items, shippingDetails, totalPrice } = req.body;
 
-    // Перевірка на випадок, якщо фронтенд прислав порожні дані
     if (!items || !shippingDetails) {
       return res.status(400).json({ message: 'Відсутні обов\'язкові дані замовлення' });
     }
 
-    // 1. Створюємо запис у базі даних
+    // 1. Створюємо запис у базі даних (Це головне!)
     const newOrder = await Order.create({
       customerName: shippingDetails.name,
       phone: shippingDetails.phone,
@@ -31,7 +30,7 @@ router.post('/', async (req, res) => {
       address: shippingDetails.address,
       comment: shippingDetails.comment,
       totalPrice: totalPrice,
-      items: items // Sequelize автоматично збереже масив у JSONB
+      items: items 
     });
 
     // 2. Генерація стильного темного HTML-шаблону листа для Адміна
@@ -85,8 +84,7 @@ router.post('/', async (req, res) => {
       </div>
     `;
 
-    // ПІДСТРАХОВКА: Якщо забув змінити імейл, відправить на пошту з процесу розробника
-    const adminEmailTarget = 'viktoriaguba89@gmail.com'; // Впиши сюди свою ПРАВИЛЬНУ робочу пошту адміна
+    const adminEmailTarget = 'viktoriaguba89@gmail.com'; 
 
     // 3. Опції надсилання листа
     const adminMailOptions = {
@@ -96,14 +94,17 @@ router.post('/', async (req, res) => {
       html: adminEmailHtml
     };
 
-    // Відправляємо лист адміну
-    await transporter.sendMail(adminMailOptions);
+    // 🔥 КРИТИЧНЕ ВИПРАВЛЕННЯ: Прибираємо await! 
+    // Лист відправляється асинхронно на фоні, сервер не чекає на відповідь від Google
+    transporter.sendMail(adminMailOptions).catch(mailError => {
+      console.error('Помилка надсилання пошти у фоновому режимі:', mailError);
+    });
 
-    // Повертаємо унікальний ID замовлення назад на фронтенд
+    // 4. МИТТЄВО повертаємо відповідь клієнту, щоб додаток НЕ зависав!
     return res.status(201).json({
       success: true,
       orderId: newOrder.id, 
-      message: 'Замовлення створено та надіслано адміністратору!'
+      message: 'Замовлення створено!'
     });
 
   } catch (error) {
