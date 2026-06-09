@@ -12,12 +12,17 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// Ендпоінт для створення замовлення
+// Ендпоінт для створення замовлення (POST /api/orders)
 router.post('/', async (req, res) => {
   try {
     const { items, shippingDetails, totalPrice } = req.body;
 
-    // 1. Створюємо запис у базі даних відповідно до твоєї структури полів
+    // Перевірка на випадок, якщо фронтенд прислав порожні дані
+    if (!items || !shippingDetails) {
+      return res.status(400).json({ message: 'Відсутні обов\'язкові дані замовлення' });
+    }
+
+    // 1. Створюємо запис у базі даних
     const newOrder = await Order.create({
       customerName: shippingDetails.name,
       phone: shippingDetails.phone,
@@ -80,11 +85,13 @@ router.post('/', async (req, res) => {
       </div>
     `;
 
+    // ПІДСТРАХОВКА: Якщо забув змінити імейл, відправить на пошту з процесу розробника
+    const adminEmailTarget = 'viktoriaguba89@gmail.com'; // Впиши сюди свою ПРАВИЛЬНУ робочу пошту адміна
+
     // 3. Опції надсилання листа
-    // ЗАМІНИ 'тут_твоя_пошта_адміна@gmail.com' на свою пошту, куди хочеш отримувати замовлення
     const adminMailOptions = {
       from: `"TATTOO SHOP" <${process.env.EMAIL_USER}>`,
-      to: 'тут_твоя_пошта_адміна@gmail.com', 
+      to: adminEmailTarget, 
       subject: `🔥 Нове замовлення від ${newOrder.customerName} — TATTOO SHOP`,
       html: adminEmailHtml
     };
@@ -92,16 +99,19 @@ router.post('/', async (req, res) => {
     // Відправляємо лист адміну
     await transporter.sendMail(adminMailOptions);
 
-    // Повертаємо унікальний UUID замовлення назад на фронтенд!
-    res.status(201).json({
+    // Повертаємо унікальний ID замовлення назад на фронтенд
+    return res.status(201).json({
       success: true,
-      orderId: newOrder.id, // Тепер фронт зловить унікальний UUID замість слова "#Успішно"
+      orderId: newOrder.id, 
       message: 'Замовлення створено та надіслано адміністратору!'
     });
 
   } catch (error) {
     console.error('Помилка обробки замовлення бекендом:', error);
-    res.status(500).json({ message: 'Помилка сервера при оформленні замовлення', error: error.message });
+    return res.status(500).json({ 
+      message: 'Помилка сервера при оформленні замовлення', 
+      error: error.message 
+    });
   }
 });
 
