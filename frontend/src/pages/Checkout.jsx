@@ -89,11 +89,11 @@ export default function Checkout() {
         totalPrice: calculateTotal()
       };
 
-      // ПІДСТРАХОВКА: Якщо з Redux токен не долетів, беремо напряму з localStorage
+      // ПІДСТРАХОВКА: Спершу беремо токен з Redux, якщо його немає — з localStorage
       const activeToken = token || localStorage.getItem('token'); 
 
       if (!activeToken) {
-        throw new Error('Ви не авторизовані або сесія застаріла. Будь ласка, увійдіть в акаунт знову.');
+        throw new Error('Ви не авторизовані або ваша сесія закінчилася. Будь ласка, увійдіть в акаунт знову.');
       }
 
       const response = await fetch('https://tattoo-shop-backend.onrender.com/api/orders', {
@@ -105,9 +105,9 @@ export default function Checkout() {
         body: JSON.stringify(orderPayload)
       });
 
-      // Специфічний перехоплювач для помилки 401
+      // Перехоплюємо помилку авторизації окремо для зручності
       if (response.status === 401) {
-        throw new Error('Сесія авторизації завершилась (401 Unauthorized). Спробуйте вийти та увійти в акаунт знову.');
+        throw new Error('Помилка авторизації (401 Unauthorized). Спробуйте вийти з акаунту та увійти знову.');
       }
 
       if (!response.ok) {
@@ -129,6 +129,7 @@ export default function Checkout() {
       console.error("Деталі помилки при створенні замовлення:", error);
       alert(error.message || 'Сталася помилка при оформленні замовлення.');
     } finally {
+      // Кнопка гарантовано повернеться в робочий стан у будь-якому випадку
       setIsSubmitting(false);
     }
   };
@@ -267,7 +268,7 @@ export default function Checkout() {
         </Grid>
       </Container>
 
-      {/* ОНОВЛЕНА СТИЛЬНА МОДАЛКА УСПІШНОГО ОФОРМЛЕННЯ ЗАМОВЛЕННЯ */}
+      {/* МОДАЛКА УСПІШНОГО ОФОРМЛЕННЯ ЗАМОВЛЕННЯ */}
       <Dialog 
         open={isSuccessOpen} 
         onClose={handleCloseSuccessDialog}
