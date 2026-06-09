@@ -67,7 +67,7 @@ export default function Profile() {
   const fetchOrders = async () => {
     try {
       setLoadingOrders(true);
-      const response = await fetch('http://localhost:5000/api/orders', {
+      const response = await fetch('https://tattoo-shop-backend.onrender.com/api/orders', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -131,7 +131,7 @@ export default function Profile() {
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/auth/profile', {
+      const response = await fetch('https://tattoo-shop-backend.onrender.com/api/auth/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -163,7 +163,7 @@ export default function Profile() {
       return alert('Будь ласка, заповніть обидва поля');
     }
     try {
-      const response = await fetch('http://localhost:5000/api/auth/change-password', {
+      const response = await fetch('https://tattoo-shop-backend.onrender.com/api/auth/change-password', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -193,7 +193,7 @@ export default function Profile() {
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/auth/send-verification', {
+      const response = await fetch('https://tattoo-shop-backend.onrender.com/api/auth/send-verification', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -219,7 +219,7 @@ export default function Profile() {
       return alert('Введіть коректний 6-значний код');
     }
     try {
-      const response = await fetch('http://localhost:5000/api/auth/verify-email', {
+      const response = await fetch('https://tattoo-shop-backend.onrender.com/api/auth/verify-email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -14,11 +14,11 @@ export default function Catalog() {
 
   // Завантаження товарів та категорій з сервера при запуску
   useEffect(() => {
-    axios.get('http://localhost:5000/api/products')
+    axios.get('https://tattoo-shop-backend.onrender.com/api/products')
       .then(res => setProducts(res.data || []))
       .catch(err => console.error("Помилка завантаження товарів:", err));
       
-    axios.get('http://localhost:5000/api/categories')
+    axios.get('https://tattoo-shop-backend.onrender.com/api/categories')
       .then(res => setCategories(res.data || []))
       .catch(err => console.error("Помилка завантаження категорій:", err));
   }, []);

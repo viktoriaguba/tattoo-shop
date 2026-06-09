@@ -24,8 +24,8 @@ export default function Register() {
 
     // Визначаємо правильний ендпоінт залежно від режиму
     const endpoint = isLogin 
-      ? 'http://localhost:5000/api/auth/login' 
-      : 'http://localhost:5000/api/auth/register';
+      ? 'https://tattoo-shop-backend.onrender.com/api/auth/login' 
+      : 'https://tattoo-shop-backend.onrender.com/api/auth/register';
 
     // Для входу нам не потрібно відправляти поле name
     const bodyData = isLogin 

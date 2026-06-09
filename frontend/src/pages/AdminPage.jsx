@@ -130,10 +130,10 @@ export default function AdminPage() {
   const loadAdminData = async () => {
     try {
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      const resOrders = await axios.get('http://localhost:5000/api/orders', config);
-      const resCats = await axios.get('http://localhost:5000/api/categories');
-      const resUsers = await axios.get('http://localhost:5000/api/admin/users', config);
-      const resProducts = await axios.get('http://localhost:5000/api/products'); 
+      const resOrders = await axios.get('https://tattoo-shop-backend.onrender.com/api/orders', config);
+      const resCats = await axios.get('https://tattoo-shop-backend.onrender.com/api/categories');
+      const resUsers = await axios.get('https://tattoo-shop-backend.onrender.com/api/admin/users', config);
+      const resProducts = await axios.get('https://tattoo-shop-backend.onrender.com/api/products'); 
 
       setOrders(resOrders.data || []);
       setCategories(resCats.data || []);
@@ -166,7 +166,7 @@ export default function AdminPage() {
     if (!image) return alert('Будь ласка, додайте фото товару!');
     try {
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.post('http://localhost:5000/api/products', { title, description, price, stock, image, category }, config);
+      await axios.post('https://tattoo-shop-backend.onrender.com/api/products', { title, description, price, stock, image, category }, config);
       alert('Товар успішно опубліковано!');
       setTitle(''); setDescription(''); setPrice(''); setStock(''); setImage(''); setCategory(''); setImagePreview(null);
       loadAdminData(); 
@@ -179,7 +179,7 @@ export default function AdminPage() {
     if (!window.confirm(`Ви впевнені, що хочете видалити товар "${name}"?`)) return;
     try {
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.delete(`http://localhost:5000/api/products/${id}`, config);
+      await axios.delete(`https://tattoo-shop-backend.onrender.com/api/products/${id}`, config);
       alert('Товар видалено!');
       loadAdminData();
     } catch (err) {
@@ -202,7 +202,7 @@ export default function AdminPage() {
   const handleUpdateProduct = async () => {
     try {
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.put(`http://localhost:5000/api/products/${editingProduct.id}`, {
+      await axios.put(`https://tattoo-shop-backend.onrender.com/api/products/${editingProduct.id}`, {
         title: editTitle,
         description: editDescription,
         price: editPrice,
@@ -222,7 +222,7 @@ export default function AdminPage() {
     e.preventDefault();
     try {
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.post('http://localhost:5000/api/categories', { name: newCatName }, config);
+      await axios.post('https://tattoo-shop-backend.onrender.com/api/categories', { name: newCatName }, config);
       alert('Категорію створено!');
       setNewCatName('');
       loadAdminData();
@@ -235,7 +235,7 @@ export default function AdminPage() {
     if (!window.confirm(`Видалити категорію "${name}"?`)) return;
     try {
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.delete(`http://localhost:5000/api/categories/${id}`, config);
+      await axios.delete(`https://tattoo-shop-backend.onrender.com/api/categories/${id}`, config);
       alert('Категорію видалено!');
       loadAdminData();
     } catch (err) {
@@ -246,7 +246,7 @@ export default function AdminPage() {
   const handleUpdateCategory = async () => {
     try {
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.put(`http://localhost:5000/api/categories/${editingCategory.id}`, { name: editCatName }, config);
+      await axios.put(`https://tattoo-shop-backend.onrender.com/api/categories/${editingCategory.id}`, { name: editCatName }, config);
       alert('Категорію перейменовано!');
       setEditingCategory(null);
       loadAdminData();
@@ -259,7 +259,7 @@ export default function AdminPage() {
     if (!window.confirm(`Ви впевнені, що хочете видалити акаунт ${name}?`)) return;
     try {
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.delete(`http://localhost:5000/api/admin/users/${id}`, config);
+      await axios.delete(`https://tattoo-shop-backend.onrender.com/api/admin/users/${id}`, config);
       alert('Користувача успішно видалено!');
       loadAdminData();
     } catch (err) {
@@ -271,7 +271,7 @@ export default function AdminPage() {
     if (!adminNewPassword.trim()) return alert('Введіть пароль');
     try {
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.put(`http://localhost:5000/api/admin/users/${passwordTargetUser.id}/password`, { newPassword: adminNewPassword }, config);
+      await axios.put(`https://tattoo-shop-backend.onrender.com/api/admin/users/${passwordTargetUser.id}/password`, { newPassword: adminNewPassword }, config);
       alert(`Пароль для користувача ${passwordTargetUser.name} оновлено!`);
       setPasswordTargetUser(null);
       setAdminNewPassword('');
