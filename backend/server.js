@@ -69,7 +69,8 @@ app.post('/api/auth/login', async (req, res) => {
     const user = await User.findOne({ where: { email } });
     if (!user) return res.status(400).json({ message: 'Користувача не знайдено' });
 
-    const isPasswordValid = bcrypt.compareSync(password, user.password);
+    // ВИПРАВЛЕНО: Асинхронне порівняння паролів для стабільності на Render
+    const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) return res.status(400).json({ message: 'Вказано невірний пароль' });
 
     const token = generateAccessToken(user.id, user.email, user.role, user.name);
@@ -87,7 +88,7 @@ app.post('/api/auth/login', async (req, res) => {
       } 
     });
   } catch (error) {
-    res.status(500).json({ message: 'Помилка при вході', error: error.message });
+    res.status(500).json({ message: 'Помилка при вході на сервері', error: error.message });
   }
 });
 
@@ -131,7 +132,8 @@ app.put('/api/auth/change-password', authMiddleware, async (req, res) => {
     const user = await User.findByPk(req.user.id);
     if (!user) return res.status(404).json({ message: 'Користувача не знайдено' });
 
-    const isPasswordValid = bcrypt.compareSync(oldPassword, user.password);
+    // ВИПРАВЛЕНО: Змінено на асинхронний bcrypt.compare
+    const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
     if (!isPasswordValid) return res.status(400).json({ message: 'Старий пароль вказано невірно' });
 
     const hashPassword = await bcrypt.hash(newPassword, 7);
@@ -279,7 +281,6 @@ app.post('/api/categories', authMiddleware, async (req, res) => {
   }
 });
 
-// --- 🔄 ОНОВЛЕННЯ КАТЕГОРІЇ (ДОДАТКОВО) ---
 app.put('/api/categories/:id', authMiddleware, async (req, res) => {
   try {
     if (req.user.role !== 'admin') return res.status(403).json({ message: 'Доступ заборонено' });
@@ -295,7 +296,6 @@ app.put('/api/categories/:id', authMiddleware, async (req, res) => {
   }
 });
 
-// --- 🗑️ ВИДАЛЕННЯ КАТЕГОРІЇ (ДОДАТКОВО) ---
 app.delete('/api/categories/:id', authMiddleware, async (req, res) => {
   try {
     if (req.user.role !== 'admin') return res.status(403).json({ message: 'Доступ заборонено' });
@@ -339,7 +339,6 @@ app.post('/api/products', authMiddleware, async (req, res) => {
   }
 });
 
-// --- ОНОВЛЕННЯ ТОВАРУ ---
 app.put('/api/products/:id', authMiddleware, async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
@@ -370,7 +369,6 @@ app.put('/api/products/:id', authMiddleware, async (req, res) => {
   }
 });
 
-// --- ВИДАЛЕННЯ ТОВАРУ ---
 app.delete('/api/products/:id', authMiddleware, async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
