@@ -43,7 +43,15 @@ app.post('/api/auth/register', async (req, res) => {
 
     const hashPassword = await bcrypt.hash(password, 7);
     
-    const user = await User.create({ name, email, password: hashPassword, role: 'user' });
+    const user = await User.create({ 
+      name, 
+      email, 
+      password: hashPassword, 
+      role: 'user',
+      is_verified: false,
+      isVerified: false
+    });
+    
     const token = generateAccessToken(user.id, user.email, user.role, user.name);
     
     res.status(201).json({ 
@@ -55,7 +63,7 @@ app.post('/api/auth/register', async (req, res) => {
         role: user.role,
         phone: user.phone || '',
         city: user.city || '',
-        isVerified: user.is_verified
+        isVerified: user.is_verified || user.isVerified || false
       } 
     });
   } catch (error) {
@@ -69,7 +77,6 @@ app.post('/api/auth/login', async (req, res) => {
     const user = await User.findOne({ where: { email } });
     if (!user) return res.status(400).json({ message: 'Користувача не знайдено' });
 
-    // ВИПРАВЛЕНО: Асинхронне порівняння паролів для стабільності на Render
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) return res.status(400).json({ message: 'Вказано невірний пароль' });
 
@@ -84,7 +91,7 @@ app.post('/api/auth/login', async (req, res) => {
         role: user.role,
         phone: user.phone || '',
         city: user.city || '',
-        isVerified: user.is_verified
+        isVerified: user.is_verified || user.isVerified || false
       } 
     });
   } catch (error) {
@@ -117,7 +124,7 @@ app.put('/api/auth/profile', authMiddleware, async (req, res) => {
         role: user.role,
         phone: user.phone || '',
         city: user.city || '',
-        isVerified: user.is_verified
+        isVerified: user.is_verified || user.isVerified || false
       }
     });
   } catch (error) {
@@ -132,7 +139,6 @@ app.put('/api/auth/change-password', authMiddleware, async (req, res) => {
     const user = await User.findByPk(req.user.id);
     if (!user) return res.status(404).json({ message: 'Користувача не знайдено' });
 
-    // ВИПРАВЛЕНО: Змінено на асинхронний bcrypt.compare
     const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
     if (!isPasswordValid) return res.status(400).json({ message: 'Старий пароль вказано невірно' });
 
@@ -197,6 +203,7 @@ app.post('/api/auth/verify-email', authMiddleware, async (req, res) => {
     }
 
     user.is_verified = true;
+    user.isVerified = true;
     user.verification_code = null;
     user.verification_code_expires = null;
     await user.save();
@@ -508,20 +515,26 @@ async function startServer() {
     
     // 1. АВТОМАТИЧНЕ СТВОРЕННЯ АДМІНІСТРАТОРА (якщо немає)
     const adminEmail = 'viktoriaguba89@gmail.com';
+    
+    // Видаляємо кривий старий запис, якщо він збійнув під час минулих запусків
     const adminExist = await User.findOne({ where: { email: adminEmail } });
-    if (!adminExist) {
-      const adminPasswordHash = await bcrypt.hash('1234567', 7);
-      await User.create({
-        name: 'Вікторія (Admin)',
-        email: adminEmail,
-        password: adminPasswordHash,
-        role: 'admin',
-        is_verified: true,
-        phone: '+380999999999',
-        city: 'Дніпро'
-      });
-      console.log('--- Створено головного адміністратора: viktoriaguba89@gmail.com / Пароль: 1234567 ---');
+    if (adminExist) {
+      await adminExist.destroy();
     }
+    
+    // Створюємо заново із зашивкою обох варіантів полів верифікації
+    const adminPasswordHash = await bcrypt.hash('1234567', 7);
+    await User.create({
+      name: 'Вікторія (Admin)',
+      email: adminEmail,
+      password: adminPasswordHash,
+      role: 'admin',
+      is_verified: true,
+      isVerified: true,
+      phone: '+380999999999',
+      city: 'Дніпро'
+    });
+    console.log('--- Створено та оновлено головного адміністратора: viktoriaguba89@gmail.com / Пароль: 1234567 ---');
 
     // 2. АВТОМАТИЧНЕ СТВОРЕННЯ КАТЕГОРІЙ (якщо немає)
     const catCount = await Category.count();
