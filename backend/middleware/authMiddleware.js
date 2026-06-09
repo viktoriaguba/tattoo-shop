@@ -11,10 +11,14 @@ module.exports = function (req, res, next) {
       return res.status(401).json({ message: "Користувач не авторизований" });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+    // Додаємо фолбек-ключ, щоб він збігався з генератором у server.js
+    const secret = process.env.JWT_ACCESS_SECRET || 'SUPER_SECRET_FALLBACK_KEY_123';
+
+    const decoded = jwt.verify(token, secret);
     req.user = decoded;
     next();
   } catch (error) {
-    return res.status(401).json({ message: "Недійсний або прострочений токен токен" });
+    console.error("Помилка валідації JWT токена:", error.message);
+    return res.status(401).json({ message: "Недійсний або прострочений токен" });
   }
 };

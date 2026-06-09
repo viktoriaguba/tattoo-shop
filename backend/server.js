@@ -31,7 +31,6 @@ const transporter = nodemailer.createTransport({
 });
 
 const generateAccessToken = (id, email, role, name) => {
-  // Захист на випадок, якщо секрет забули додати в змінні оточення Render
   const secret = process.env.JWT_ACCESS_SECRET || 'SUPER_SECRET_FALLBACK_KEY_123';
   return jwt.sign({ id, email, role, name }, secret, { expiresIn: '24h' });
 };
@@ -77,22 +76,18 @@ app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     
-    // Безпечний пошук користувача
     const user = await User.findOne({ where: { email } });
     if (!user) {
       return res.status(400).json({ message: 'Користувача з таким email не знайдено' });
     }
 
-    // Безпечна перевірка пароля
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(400).json({ message: 'Вказано невірний пароль' });
     }
 
-    // Генерація токена
     const token = generateAccessToken(user.id, user.email, user.role || 'user', user.name || '');
     
-    // Повернення відповіді з безпечним фолбеком для полів
     return res.json({ 
       token, 
       user: { 
@@ -106,7 +101,6 @@ app.post('/api/auth/login', async (req, res) => {
       } 
     });
   } catch (error) {
-    // Якщо станеться якась внутрішня помилка — ми відправимо деталі на фронтенд, замість сухого 500
     console.error('ПОМИЛКА МАРШРУТУ LOGIN:', error);
     return res.status(500).json({ 
       message: 'Внутрішня помилка сервера при вході', 
@@ -201,10 +195,7 @@ app.post('/api/auth/send-verification', authMiddleware, async (req, res) => {
     await transporter.sendMail(mailOptions);
     res.json({ message: 'Код успішно надіслано на пошту' });
   } catch (error) {
-    console.error('=============================================');
-    console.error('КРИТИЧНА ПОМИЛКА NODEMAILER ПРИ ВІДПРАВЦІ ЛИСТА:');
-    console.error(error);
-    console.error('=============================================');
+    console.error('📋 Помилка при відправці верифікації:', error.message);
     res.status(500).json({ message: 'Помилка відправки листа', error: error.message });
   }
 });
@@ -428,6 +419,7 @@ app.post('/api/orders', async (req, res) => {
     if (shippingDetails.name) customerName = shippingDetails.name;
     if (shippingDetails.email) customerEmail = shippingDetails.email;
 
+    // 1. Створюємо запис у базі даних Neon
     const newOrder = await Order.create({ 
       customerName: customerName, 
       phone: shippingDetails.phone,
@@ -439,62 +431,56 @@ app.post('/api/orders', async (req, res) => {
       items: items 
     });
 
-    const itemsHtml = items.map(item => `
-      <tr>
-        <td style="padding: 12px; border-bottom: 1px solid #222; color: #ffffff; font-size: 14px;">${item.title}</td>
-        <td style="padding: 12px; border-bottom: 1px solid #222; color: #aaaaaa; text-align: center; font-size: 14px;">${item.quantity || 1} шт.</td>
-        <td style="padding: 12px; border-bottom: 1px solid #222; color: #ff4081; text-align: right; font-weight: bold; font-size: 14px;">${item.price * (item.quantity || 1)} грн</td>
-      </tr>
-    `).join('');
-
-    const mailOptions = {
-      from: `"TATTOO SHOP CRM" <${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_USER,
-      subject: `🚨 НОВЕ ЗАМОВЛЕННЯ №${newOrder.id.substring(0, 8)}... | TATTOO SHOP`,
-      html: `
-        <div style="background-color: #060606; color: #ffffff; padding: 40px; font-family: 'Segoe UI', Roboto, sans-serif; border-radius: 20px; max-width: 600px; margin: 0 auto; border: 2px solid #ff4081; box-shadow: 0 0 20px rgba(255, 64, 129, 0.2);">
-          <h2 style="color: #ff4081; border-bottom: 2px dashed #ff4081; padding-bottom: 15px; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 0; font-size: 22px; text-align: center;">⚡ НОВЕ ЗАМОВЛЕННЯ НА САЙТІ ⚡</h2>
-          <p style="color: #777; font-size: 12px; text-align: center; margin-top: -5px; margin-bottom: 25px;">Повний ID: ${newOrder.id}</p>
-          <h3 style="color: #bd00ff; margin-bottom: 12px; text-transform: uppercase; font-size: 14px; letter-spacing: 0.5px;">📍 Дані доставки:</h3>
-          <div style="background: #111; border-radius: 10px; padding: 15px; margin-bottom: 25px; border: 1px solid #1a1a1a; line-height: 1.6;">
-            <p style="margin: 4px 0; font-size: 14px;"><b style="color: #888;">Покупець:</b> <span style="color: #fff; font-weight: 600;">${customerName}</span></p>
-            <p style="margin: 4px 0; font-size: 14px;"><b style="color: #888;">Контактний телефон:</b> <span style="color: #00e676; font-weight: bold;">${shippingDetails.phone || 'Не вказано'}</span></p>
-            <p style="margin: 4px 0; font-size: 14px;"><b style="color: #888;">Email для зв'язку:</b> <span style="color: #eee;">${customerEmail}</span></p>
-            <p style="margin: 4px 0; font-size: 14px;"><b style="color: #888;">Місто доставки:</b> <span style="color: #fff;">м. ${shippingDetails.city || 'Не вказано'}</span></p>
-            <p style="margin: 4px 0; font-size: 14px;"><b style="color: #888;">Відділення / Адреса:</b> <span style="color: #fff;">${shippingDetails.address || 'Не вказано'}</span></p>
-            <p style="margin: 4px 0; font-size: 14px;"><b style="color: #888;">Коментар клієнта:</b> <span style="color: #aaa; font-style: italic;">${shippingDetails.comment || 'Відсутній'}</span></p>
-          </div>
-          <h3 style="color: #bd00ff; margin-bottom: 12px; text-transform: uppercase; font-size: 14px; letter-spacing: 0.5px;">🛒 Склад замовлення:</h3>
-          <table style="width: 100%; border-collapse: collapse; background: #0c0c0c; border-radius: 12px; overflow: hidden; border: 1px solid #1a1a1a;">
-            <thead>
-              <tr style="background-color: #141414;">
-                <th style="padding: 12px; text-align: left; color: #666; font-size: 12px; text-transform: uppercase;">Товар</th>
-                <th style="padding: 12px; color: #666; font-size: 12px; text-transform: uppercase; text-align: center;">К-сть</th>
-                <th style="padding: 12px; text-align: right; color: #666; font-size: 12px; text-transform: uppercase;">Ціна</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${itemsHtml}
-            </tbody>
-          </table>
-          <div style="text-align: right; margin-top: 30px; padding-top: 20px; border-top: 1px dashed #222;">
-            <span style="font-size: 14px; color: #888; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Разом до сплати:</span>
-            <div style="font-size: 30px; font-weight: 900; color: #ff4081; margin-top: 5px;">${totalPrice} грн</div>
-          </div>
-        </div>
-      `
-    };
-
-    await transporter.sendMail(mailOptions);
-    
+    // 🔥 КРИТИЧНЕ ВИПРАВЛЕННЯ: МИТТЄВО повертаємо відповідь клієнту!
+    // Фронтенд одразу очистить кошик і покаже модалку успіху, не зависаючи на 2 хвилини.
     res.status(201).json({ 
       success: true,
       message: 'Замовлення успішно оформлено', 
       orderId: newOrder.id 
     });
+
+    // 2. НАДСИЛАННЯ ЛИСТА АСИНХРОННО У ФОНІ (Без блокування запиту!)
+    setImmediate(async () => {
+      try {
+        const itemsHtml = items.map(item => `
+          <tr>
+            <td style="padding: 12px; border-bottom: 1px solid #222; color: #ffffff; font-size: 14px;">${item.title}</td>
+            <td style="padding: 12px; border-bottom: 1px solid #222; color: #aaaaaa; text-align: center; font-size: 14px;">${item.quantity || 1} шт.</td>
+            <td style="padding: 12px; border-bottom: 1px solid #222; color: #ff4081; text-align: right; font-weight: bold; font-size: 14px;">${item.price * (item.quantity || 1)} грн</td>
+          </tr>
+        `).join('');
+
+        const mailOptions = {
+          from: `"TATTOO SHOP CRM" <${process.env.EMAIL_USER}>`,
+          to: process.env.EMAIL_USER,
+          subject: `🚨 НОВЕ ЗАМОВЛЕННЯ №${newOrder.id.substring(0, 8)}... | TATTOO SHOP`,
+          html: `
+            <div style="background-color: #060606; color: #ffffff; padding: 40px; font-family: sans-serif; border-radius: 20px; max-width: 600px; margin: 0 auto; border: 2px solid #ff4081;">
+              <h2 style="color: #ff4081; text-align: center;">⚡ НОВЕ ЗАМОВЛЕННЯ НА САЙТІ ⚡</h2>
+              <p style="color: #fff;"><b>Покупець:</b> ${customerName}</p>
+              <p style="color: #00e676;"><b>Телефон:</b> ${shippingDetails.phone || 'Не вказано'}</p>
+              <p style="color: #fff;"><b>Місто:</b> м. ${shippingDetails.city || 'Не вказано'}</p>
+              <table style="width: 100%; border-collapse: collapse;">
+                ${itemsHtml}
+              </table>
+              <h3 style="color: #ff4081; text-align: right;">Разом: ${totalPrice} грн</h3>
+            </div>
+          `
+        };
+
+        // Тут може статися таймаут сокету, але він вже в ізольованому потоці і нічого не зламає
+        await transporter.sendMail(mailOptions);
+        console.log(`📧 Фоновий лист для замовлення ${newOrder.id} успішно надіслано.`);
+      } catch (mailError) {
+        console.error('⚠️ Помилка відправки фонової пошти (ігнорується бекендом):', mailError.message);
+      }
+    });
+
   } catch (error) {
     console.error('Помилка при створенні замовлення:', error);
-    res.status(500).json({ message: 'Помилка створення замовлення', error: error.message });
+    if (!res.headersSent) {
+      res.status(500).json({ message: 'Помилка створення замовлення', error: error.message });
+    }
   }
 });
 
@@ -517,7 +503,6 @@ async function startServer() {
     await sequelize.sync({ alter: true }); 
     console.log('--- Базу даних Neon успішно синхронізовано ({ alter: true }) ---');
     
-    // 1. АВТОМАТИЧНЕ СТВОРЕННЯ АДМІНІСТРАТОРА (БЕЗПЕЧНЕ — БЕЗ ВИДАЛЕННЯ СТАРОГО КЛЮЧА)
     const adminEmail = 'viktoriaguba89@gmail.com';
     const adminExist = await User.findOne({ where: { email: adminEmail } });
     
@@ -535,12 +520,10 @@ async function startServer() {
       });
       console.log('--- Головного адміністратора успішно СТВОРЕНО: viktoriaguba89@gmail.com / Пароль: 1234567 ---');
     } else {
-      // Якщо адмін є, просто м'яко переконуємось, що його роль залишається admin, не ламаючи ID
       await adminExist.update({ role: 'admin', is_verified: true, isVerified: true });
       console.log('--- Головний адміністратор вже існує в базі, дані перевірено ---');
     }
 
-    // 2. АВТОМАТИЧНЕ СТВОРЕННЯ КАТЕГОРІЙ (якщо немає)
     const catCount = await Category.count();
     if (catCount === 0) {
       await Category.bulkCreate([
@@ -548,10 +531,8 @@ async function startServer() {
         { name: 'Пігменти' }, 
         { name: 'Розхідники' }
       ]);
-      console.log('--- Стартові категорії створено ---');
     }
 
-    // 3. АВТОМАТИЧНЕ СТВОРЕННЯ ДЕМО-ТОВАРІВ (якщо немає)
     const productCount = await Product.count();
     if (productCount === 0) {
       await Product.bulkCreate([
@@ -583,7 +564,6 @@ async function startServer() {
           attributes: {}
         }
       ]);
-      console.log('--- Стартові放товари додано в магазин! ---');
     }
 
     app.listen(PORT, () => console.log(`--- Сервер працює на порту ${PORT} ---`));
