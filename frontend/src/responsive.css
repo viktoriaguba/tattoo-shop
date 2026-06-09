@@ -1,0 +1,138 @@
+/* ГЛОБАЛЬНА МОБІЛЬНА АДАПТАЦІЯ ДЛЯ ВСІХ СТОРІНОК */
+@media (max-width: 767px) {
+  
+  /* 1. Адаптація головних контейнерів та відступів */
+  .MuiContainer-root {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  /* Зменшуємо гігантські падінги секцій сторінок */
+  div[style*="padding: 60px"], 
+  div[style*="py: 6"], 
+  div[style*="py: 4"] {
+    padding-top: 24px !important;
+    padding-bottom: 40px !important;
+  }
+
+  /* 2. Заголовки (щоб текст не вилазив за екран) */
+  .MuiTypography-h3 {
+    font-size: 26px !important;
+    line-height: 1.2 !important;
+    text-align: center !important;
+    margin-bottom: 20px !important;
+  }
+
+  .MuiTypography-h4 {
+    font-size: 22px !important;
+    line-height: 1.2 !important;
+    text-align: center !important;
+    margin-bottom: 18px !important;
+  }
+
+  .MuiTypography-h5 {
+    font-size: 18px !important;
+    text-align: center !important;
+  }
+
+  /* 3. Картки товарів та форми (Paper/Grid) */
+  .MuiPaper-root {
+    padding: 16px !important; /* зменшуємо внутрішні відступи паперу */
+    border-radius: 16px !important; /* робимо закруглення акуратнішим */
+  }
+
+  /* Перетворюємо всі горизонтальні гріди (Grid container) на мобільні стовпчики */
+  .MuiGrid-container {
+    width: 100% !important;
+    margin-left: 0 !important;
+    gap: 16px !important; /* стабільна відстань між блоками */
+  }
+
+  .MuiGrid-item {
+    padding-left: 0 !important;
+    padding-top: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* 4. Таблиці (Адмінка, Кошик, Чек) — найболючіша тема */
+  /* Перетворюємо громіздкі таблиці на зручні мобільні картки */
+  .MuiTableContainer-root {
+    border: none !important;
+    max-height: none !important;
+  }
+
+  .MuiTable-root {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  .MuiTableHead-root {
+    display: none !important; /* ховаємо шапку таблиці на мобілках */
+  }
+
+  .MuiTableBody-root {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  .MuiTableRow-root {
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 12px 0 !important;
+    border-bottom: 1px solid #222 !important;
+    position: relative;
+  }
+
+  .MuiTableCell-root {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    border-bottom: none !important;
+    padding: 6px 0 !important;
+    width: 100% !important;
+    text-align: left !important;
+    font-size: 14px !important;
+  }
+
+  /* Додаємо псевдо-лейбли для розшифровки полів у чеку/адмінці */
+  .MuiTableCell-root[align="center"] {
+    justify-content: space-between !important;
+  }
+
+  /* 5. Модалки та Діалоги (щоб не стискалися і ставали на весь екран) */
+  .MuiDialog-paper {
+    width: 92% !important;
+    max-width: 92% !important;
+    margin: 12px !important;
+    padding: 8px !important;
+    border-radius: 20px !important;
+  }
+
+  .MuiDialogContent-root {
+    padding: 16px 8px !important;
+    gap: 16px !important; /* фікс відстані між інпутами у модалці адмінки */
+  }
+
+  /* 6. Кнопки та Інпути */
+  .MuiButton-root {
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+    font-size: 14px !important;
+  }
+
+  .MuiButtonGroup-root {
+    display: flex !important;
+    width: 100% !important;
+  }
+  
+  .MuiButtonGroup-root .MuiButton-root {
+    flex: 1 !important;
+  }
+
+  /* Фікс полів вводу */
+  .MuiBox-root[style*="display: flex"] {
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+}

@@ -1,0 +1,13 @@
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #121212;
+  font-family: 'Roboto', 'Segoe UI', sans-serif;
+  color: #ffffff;
+}
+
+/* Прибираємо стандартне підкреслення посилань */
+a {
+  text-transform: none;
+  text-decoration: none;
+}
