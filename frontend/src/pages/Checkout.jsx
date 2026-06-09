@@ -89,14 +89,26 @@ export default function Checkout() {
         totalPrice: calculateTotal()
       };
 
+      // ПІДСТРАХОВКА: Якщо з Redux токен не долетів, беремо напряму з localStorage
+      const activeToken = token || localStorage.getItem('token'); 
+
+      if (!activeToken) {
+        throw new Error('Ви не авторизовані або сесія застаріла. Будь ласка, увійдіть в акаунт знову.');
+      }
+
       const response = await fetch('https://tattoo-shop-backend.onrender.com/api/orders', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
+          'Authorization': `Bearer ${activeToken}`
         },
         body: JSON.stringify(orderPayload)
       });
+
+      // Специфічний перехоплювач для помилки 401
+      if (response.status === 401) {
+        throw new Error('Сесія авторизації завершилась (401 Unauthorized). Спробуйте вийти та увійти в акаунт знову.');
+      }
 
       if (!response.ok) {
         throw new Error('Не вдалося сформувати замовлення. Спробуйте пізніше.');
@@ -114,7 +126,7 @@ export default function Checkout() {
       setIsSuccessOpen(true);
 
     } catch (error) {
-      console.error(error);
+      console.error("Деталі помилки при створенні замовлення:", error);
       alert(error.message || 'Сталася помилка при оформленні замовлення.');
     } finally {
       setIsSubmitting(false);
@@ -274,7 +286,7 @@ export default function Checkout() {
             p: 1, 
             textAlign: 'center', 
             maxWidth: '420px',
-            backgroundImage: 'none' // Прибирає внутрішні градієнти MUI
+            backgroundImage: 'none'
           } 
         }}
       >
