@@ -323,14 +323,47 @@ export default function AdminPage() {
                     <Accordion key={o.id} sx={{ bgcolor: '#111', color: '#fff', mb: 2, border: '1px solid #222', backgroundImage: 'none' }}>
                       <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: '#ff4081' }} />}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', pr: 2 }}>
-                          <Typography variant="subtitle2" sx={{ color: '#ff4081', fontWeight: 'bold' }}>Клієнт: {o.customerName}</Typography>
+                          <Typography variant="subtitle2" sx={{ color: '#ff4081', fontWeight: 'bold' }}>Клієнт: {o.customerName || 'Гість'}</Typography>
                           <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{o.totalPrice} грн</Typography>
                         </Box>
                       </AccordionSummary>
-                      <AccordionDetails>
+                      <AccordionDetails sx={{ borderTop: '1px solid #222', pt: 2 }}>
+                        
+                        {/* 🚚 БЛОК: ВСЯ ІНФОРМАЦІЯ ВІД ЗАМОВНИКА ПРИ ОФОРМЛЕННІ */}
+                        <Box sx={{ bgcolor: '#161616', p: 2, borderRadius: 2, mb: 3, border: '1px solid #2a2a2a' }}>
+                          <Typography variant="subtitle2" sx={{ color: '#ff4081', fontWeight: 'bold', mb: 1.5, textTransform: 'uppercase', fontSize: '12px', letterSpacing: '0.5px' }}>
+                            Дані для доставки та зв'язку:
+                          </Typography>
+                          <Grid container spacing={2}>
+                            <Grid item xs={12} sm={6}>
+                              <Typography variant="body2" sx={{ color: '#888' }}>Номер телефону:</Typography>
+                              <Typography variant="body1" sx={{ color: '#fff', fontWeight: '500' }}>{o.phone || 'Не вказано'}</Typography>
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                              <Typography variant="body2" sx={{ color: '#888' }}>Email-адреса:</Typography>
+                              <Typography variant="body1" sx={{ color: '#fff', fontWeight: '500' }}>{o.email || 'Не вказано'}</Typography>
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                              <Typography variant="body2" sx={{ color: '#888' }}>Місто:</Typography>
+                              <Typography variant="body1" sx={{ color: '#fff', fontWeight: '500' }}>{o.city || 'Не вказано'}</Typography>
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                              <Typography variant="body2" sx={{ color: '#888' }}>Адреса / Відділення НП:</Typography>
+                              <Typography variant="body1" sx={{ color: '#fff', fontWeight: '500' }}>{o.address || o.deliveryAddress || 'Не вказано'}</Typography>
+                            </Grid>
+                            <Grid item xs={12}>
+                              <Typography variant="body2" sx={{ color: '#888' }}>Коментар до замовлення:</Typography>
+                              <Typography variant="body1" sx={{ color: '#fff', fontStyle: o.comment ? 'normal' : 'italic' }}>{o.comment || 'Коментар відсутній'}</Typography>
+                            </Grid>
+                          </Grid>
+                        </Box>
+
+                        <Typography variant="subtitle2" sx={{ color: '#aaa', fontWeight: 'bold', mb: 1, fontSize: '12px', textTransform: 'uppercase' }}>
+                          Товари у замовленні:
+                        </Typography>
                         <List disablePadding>
                           {(o.items || []).map((item, idx) => (
-                            <ListItem key={idx} sx={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #222', py: 1 }}>
+                            <ListItem key={idx} sx={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #222', py: 1, px: 0 }}>
                               <Typography variant="body2">{item.title} <b>x{item.quantity}</b></Typography>
                               <Typography variant="body2" color="#ff4081">{(item.price * item.quantity).toLocaleString()} грн</Typography>
                             </ListItem>
@@ -528,14 +561,14 @@ export default function AdminPage() {
         </Grid>
       </Container>
 
-      {/* 🛠️ ФІКСОВАНА МОДАЛКА: РЕДАГУВАННЯ ТОВАРУ */}
+      {/* 🛠️ МОДАЛКА: РЕДАГУВАННЯ ТОВАРУ */}
       <Dialog 
         open={Boolean(editingProduct)} 
         onClose={() => setEditingProduct(null)} 
         slotProps={{ backdrop: { style: { backgroundColor: 'rgba(0, 0, 0, 0.85)', backdropFilter: 'blur(6px)' } } }}
         PaperProps={{ 
           sx: { 
-            bgcolor: '#121212 !important', // ТОТАЛЬНЕ ВИПРАВЛЕННЯ БІЛОГО ФОНУ З ГРАФІКА
+            bgcolor: '#121212 !important', 
             color: '#fff !important', 
             minWidth: 550, 
             border: '1px solid #2a2a2a', 
@@ -577,7 +610,7 @@ export default function AdminPage() {
             <Paper variant="outlined" sx={{ backgroundColor: '#111', border: '2px dashed #444', borderRadius: '8px', p: 3, textAlign: 'center', cursor: 'pointer', '&:hover': { borderColor: '#ff4081' } }} component="label">
               <input type="file" accept="image/*" hidden onChange={(e) => handleFileChange(e, true)} />
               <CloudUploadIcon sx={{ color: '#ff4081', fontSize: 32, mb: 0.5 }} />
-              <Typography variant="body2" sx={{ color: '#fff', fontWeight: 'bold' }}>Змінити файл фото</Typography>
+              <Typography variant="body2" sx={{ color: '#fff', fontWeight: 'bold' }}>Змінити фото</Typography>
             </Paper>
           ) : (
             <TextField label="Посилання на фото (URL)" fullWidth value={editImage} onChange={(e) => setEditImage(e.target.value)} sx={darkInputStyles} />
@@ -593,7 +626,7 @@ export default function AdminPage() {
         </DialogActions>
       </Dialog>
 
-      {/* 🛠️ ФІКСОВАНА МОДАЛКА: РЕДАГУВАННЯ КАТЕГОРІЇ */}
+      {/* 🛠️ МОДАЛКА: РЕДАГУВАННЯ КАТЕГОРІЇ */}
       <Dialog 
         open={Boolean(editingCategory)} 
         onClose={() => setEditingCategory(null)} 
@@ -610,7 +643,7 @@ export default function AdminPage() {
         </DialogActions>
       </Dialog>
 
-      {/* ФІКСОВАНА МОДАЛКА: ПОКУПКИ КОНКРЕТНОГО ЮЗЕРА */}
+      {/* 🛠️ МОДАЛКА: ПОКУПКИ КОНКРЕТНОГО ЮЗЕРА */}
       <Dialog 
         open={Boolean(selectedUserOrders)} 
         onClose={() => setSelectedUserOrders(null)} 
@@ -639,7 +672,7 @@ export default function AdminPage() {
         </DialogActions>
       </Dialog>
 
-      {/* ФІКСОВАНА МОДАЛКА: ЗМІНА ПАРОЛЯ АДМІНОМ */}
+      {/* 🛠️ МОДАЛКА: ЗМІНА ПАРОЛЯ АДМІНОМ */}
       <Dialog 
         open={Boolean(passwordTargetUser)} 
         onClose={() => setPasswordTargetUser(null)} 
