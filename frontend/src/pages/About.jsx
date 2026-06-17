@@ -52,7 +52,7 @@ export default function About() {
             {[
               {
                 name: 'Telegram',
-                link: 'https://t.me/your_tattoo_shop',
+                link: 'https://t.me/xxcuttiew',
                 sub: 'Анонси, знижки та чат майстрів',
                 hoverClass: 'tg-hover',
                 iconColor: '#0088cc',
@@ -60,7 +60,7 @@ export default function About() {
               },
               {
                 name: 'Instagram',
-                link: 'https://instagram.com/your_tattoo_shop',
+                link: 'https://www.instagram.com/tatto_dp_?igsh=MXB6MXNzYTF3eWZsag==',
                 sub: 'Фотообзори та бекстейджі зі студій',
                 hoverClass: 'insta-hover',
                 iconColor: '#e1306c',
